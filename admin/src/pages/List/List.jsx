@@ -14,6 +14,7 @@ const List = ({ url }) => {
       toast.error("Error");
     }
   };
+
   useEffect(() => {
     fetchList();
   }, []);

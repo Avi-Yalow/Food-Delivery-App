@@ -2,36 +2,38 @@ import React, { useContext, useState } from "react";
 import "./LoginPopup.css";
 import { assets } from "../../assets/frontend_assets/assets";
 import { StoreContext } from "../../context/StoreContext";
-import axios from "axios"
+import axios from "axios";
 const LoginPopup = ({ setShowLogin }) => {
-  const {url} = useContext(StoreContext)
+  const { url, auth, setAuth, getCookie } = useContext(StoreContext);
   const [currState, setCurrState] = useState("Login");
-  const [data,setData]= useState({
-    name:"",
-    email:"",
-    password:""
-  })
-  const onChangeHandler = (event)=>{
-const name = event.target.name
-const value = event.target.value
-setData(data=>({...data,[name]:value}))}
+  const [data, setData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+  const onChangeHandler = (event) => {
+    const name = event.target.name;
+    const value = event.target.value;
+    setData((data) => ({ ...data, [name]: value }));
+  };
 
-const onLogin = async (event)=>{event.preventDefault()
-  let newUrl= url
-  if(currState==="Login"){
-    newUrl+="/api/user/login"
-  }
-  else{
-    newUrl+="/api/user/register"
-  }
-  const response = await axios.post(newUrl,data, { withCredentials: true })
-  if(response.data.success){
-  setShowLogin(false)
-  }else{
-  alert(response.data.message)
-  }}
-
-
+  const onLogin = async (event) => {
+    event.preventDefault();
+    let newUrl = url;
+    if (currState === "Login") {
+      newUrl += "/api/user/login";
+    } else {
+      newUrl += "/api/user/register";
+    }
+    const response = await axios.post(newUrl, data, { withCredentials: true });
+    if (response.data.success) {
+      setAuth(true);
+      localStorage.setItem("auth", "true");
+      setShowLogin(false);
+    } else {
+      alert(response.data.message);
+    }
+  };
 
   return (
     <div className="login-popup">
@@ -48,12 +50,35 @@ const onLogin = async (event)=>{event.preventDefault()
           {currState === "Login" ? (
             <></>
           ) : (
-            <input type="text" onChange={onChangeHandler} name="name" value={data.name} placeholder="Your name" required />
+            <input
+              type="text"
+              onChange={onChangeHandler}
+              name="name"
+              value={data.name}
+              placeholder="Your name"
+              required
+            />
           )}
-          <input type="email" placeholder="Your email" name="email" onChange={onChangeHandler} value={data.email} required />
-          <input type="password" placeholder="Password" name="password" onChange={onChangeHandler} value={data.password} required />
+          <input
+            type="email"
+            placeholder="Your email"
+            name="email"
+            onChange={onChangeHandler}
+            value={data.email}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            name="password"
+            onChange={onChangeHandler}
+            value={data.password}
+            required
+          />
         </div>
-        <button type="submit">{currState === "Sign Up" ? "Create account" : "Login"}</button>
+        <button type="submit">
+          {currState === "Sign Up" ? "Create account" : "Login"}
+        </button>
         <div className="login-popup-condition">
           <input type="checkbox" required />
           <p>By continue, I agree to the terms of use & privacy policy</p>

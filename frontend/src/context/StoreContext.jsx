@@ -1,21 +1,42 @@
 import { createContext, useEffect, useState } from "react";
-import { food_list } from "../assets/frontend_assets/assets";
+import axios from "axios";
 export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
   const [cartItems, setCartItems] = useState({});
-  const url = "http://localhost:4000"
+  const url = "http://localhost:4000";
+  const [food_list, setFoodList] = useState([]);
 
-  const addToCart = (itemId) => {
+  const [auth, setAuth] = useState(false);
+
+  const addToCart = async (itemId) => {
     if (!cartItems[itemId]) {
       setCartItems((prev) => ({ ...prev, [itemId]: 1 }));
     } else {
       setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
     }
+    if (auth) {
+      await axios.post(
+        `${url}/api/cart/add`,
+        { itemId },
+        {
+          withCredentials: true,
+        }
+      );
+    }
   };
 
-  const removeFromCart = (itemId) => {
+  const removeFromCart = async (itemId) => {
     setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }));
+    if (auth) {
+      await axios.post(
+        `${url}/api/cart/remove`,
+        { itemId },
+        {
+          withCredentials: true,
+        }
+      );
+    }
   };
 
   const getToatlCartAmount = () => {
@@ -29,6 +50,29 @@ const StoreContextProvider = (props) => {
     return totalAmount;
   };
 
+  const fetchFoodList = async () => {
+    const response = await axios.get(`${url}/api/food/list`);
+    setFoodList(response.data.data);
+  };
+
+  const loadCartData = async () => {
+    const response = await axios.get(`${url}/api/cart/get`, {
+      withCredentials: true,
+    });
+    setCartItems(response.data.cartData);
+  };
+
+  useEffect(() => {
+    async function loadData() {
+      await fetchFoodList();
+      if (localStorage.getItem("auth")) {
+        setAuth(true);
+        await loadCartData();
+      }
+    }
+    loadData();
+  }, []);
+
   const contextValue = {
     food_list,
     cartItems,
@@ -36,7 +80,9 @@ const StoreContextProvider = (props) => {
     addToCart,
     removeFromCart,
     getToatlCartAmount,
-    url
+    url,
+    auth,
+    setAuth,
   };
   return (
     <StoreContext.Provider value={contextValue}>

@@ -1,12 +1,36 @@
 import React, { useState, useContext } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { assets } from "../assets/frontend_assets/assets";
 import { StoreContext } from "../context/StoreContext";
+import axios from "axios";
 import "./Navbar.css";
 
 const Navbar = ({ setShowLogin }) => {
-  const { getToatlCartAmount } = useContext(StoreContext);
+  const { getToatlCartAmount, auth, setAuth, url } = useContext(StoreContext);
   const [menu, setMenu] = useState("home");
+  const navigate = useNavigate();
+  const logout = async () => {
+    //TODO api call to backend to logout and remove cookie
+    try {
+      const response = await axios.post(
+        `${url}/api/user/logout`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
+      if (response.data.success) {
+        setAuth(false);
+        localStorage.removeItem("auth");
+        navigate("/");
+      } else {
+        alert(response.data.message);
+      }
+    } catch (error) {
+      alert(response.data.message);
+    }
+  };
+
   return (
     <div className="navbar">
       <Link to="/">
@@ -50,7 +74,24 @@ const Navbar = ({ setShowLogin }) => {
           </Link>
           <div className={getToatlCartAmount() === 0 ? "" : "dot"}></div>
         </div>
-        <button onClick={() => setShowLogin(true)}>sign in</button>
+        {!auth ? (
+          <button onClick={() => setShowLogin(true)}>sign in</button>
+        ) : (
+          <div className="navbar-profile">
+            <img src={assets.profile_icon} alt="" />
+            <ul className="nav-profile-dropdown">
+              <li onClick={() => navigate("/myorders")}>
+                <img src={assets.bag_icon} alt="" />
+                <p>Orders</p>
+              </li>
+              <hr />
+              <li onClick={logout}>
+                <img src={assets.logout_icon} alt="" />
+                <p>Logout</p>
+              </li>
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );

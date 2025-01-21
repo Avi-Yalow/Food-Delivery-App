@@ -9,7 +9,7 @@ const createToken = (id) => {
 const loginUser = async (req, res) => {
   const { password, email } = req.body;
   try {
-    const user = await userModel.findOne({email});
+    const user = await userModel.findOne({ email });
     if (!user) {
       return res
         .status(404)
@@ -22,13 +22,15 @@ const loginUser = async (req, res) => {
         .json({ success: false, message: "Invalid credentials" });
     }
     const token = createToken(user._id);
-    res.cookie("jwt",token,{
-      httpOnly:true,
-      secure:true,
-      sameSite:"strict",
-      maxAge:1*60*60*1000
-    })
-    return res.status(200).json({ success: true, message:"Successfully login" });
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 1 * 60 * 60 * 1000,
+    });
+    return res
+      .status(200)
+      .json({ success: true, message: "Successfully login" });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ success: false, message: "Error" });
@@ -65,17 +67,34 @@ const registerUser = async (req, res) => {
     });
     const user = await newUser.save();
     const token = createToken(user._id);
-    res.cookie("jwt",token,{
-      httpOnly:true,
-      secure:true,
-      sameSite:"strict",
-      maxAge:1*60*60*1000
-    })
-    return res.status(200).json({ success: true,  message:"Successfully register" });
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 1 * 60 * 60 * 1000,
+    });
+    return res
+      .status(200)
+      .json({ success: true, message: "Successfully register" });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ success: false, message: "Error" });
   }
 };
+const logoutUser = async (req, res) => {
+  try {
+    res.clearCookie("token", "", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      path: "/",
+      domain: "localhost",
+    });
+    return res.json({ success: true, message: "Successfully logout" });
+  } catch (error) {
+    console.log(error);
+    return res.json({ success: false, message: "Error" });
+  }
+};
 
-export { loginUser, registerUser };
+export { loginUser, registerUser, logoutUser };
